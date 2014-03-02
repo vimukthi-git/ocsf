@@ -14,7 +14,8 @@ public class EchoServer extends AbstractServer {
     }    
 
     public static void main(String[] args) {
-        new Thread(new EchoServer(8000)).start();
+        EchoServer server = new EchoServer(8000);
+        server.listen();
     }
 
     @Override

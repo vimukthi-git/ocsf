@@ -13,7 +13,6 @@ public class ClientConsole implements ChatIF {
     private static final String DEFAULT_HOST = "localhost";
     private static final int DEFAULT_PORT = 8000;
     private boolean run = true;
-    private Thread clientThread;
 
     public static void main(String[] args) throws InterruptedException, IOException {
         ClientConsole console = new ClientConsole();

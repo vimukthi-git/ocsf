@@ -23,6 +23,7 @@ public abstract class AbstractServer implements Runnable {
     private List<Thread> clientThreads;
     private ServerSocket serverSocket;
     private static final Logger logger = Logger.getLogger(AbstractServer.class.getName());
+    private Thread server;
 
     public AbstractServer(int port) {
         this.port = port;
@@ -63,9 +64,6 @@ public abstract class AbstractServer implements Runnable {
                 con.sendToClient(msg);
             }
         }
-//        for (int i = 0; i < numberOfClients; i++) {
-//            
-//        }
     }
 
     public final Thread[] getClientConnections() {
@@ -116,19 +114,17 @@ public abstract class AbstractServer implements Runnable {
     public final void listen() {
         logger.log(Level.INFO, "Server listening");
         listening = true;
-        while (listening && backlog >= numberOfClients && !closed) {
-            Socket connectionSocket;
-            try {
-                connectionSocket = serverSocket.accept();
-                ConnectionToClient client = new ConnectionToClient(this, connectionSocket.getInetAddress(), connectionSocket);
-                clientThreads.add(client);
-                numberOfClients++;
-                clientConnected(client);
-                client.start();
-            } catch (IOException ex) {
-                listeningException(ex);
-            }
+        try {
+            serverSocket = new ServerSocket(port);            
+            clientThreads = new ArrayList<Thread>();
+            server = new Thread(this);
+            server.start();
+            logger.log(Level.INFO, "Server started");
+            serverStarted();
+        } catch (IOException ex) {
+            logger.log(Level.SEVERE, null, ex);
         }
+        
     }
 
     public final void stopListening() {
@@ -156,17 +152,19 @@ public abstract class AbstractServer implements Runnable {
 
     @Override
     public final void run() {
-        logger.log(Level.INFO, "Server started");
-        try {
-            serverSocket = new ServerSocket(port);
-            serverStarted();
-            clientThreads = new ArrayList<Thread>();
-            //serverSocket.setSoTimeout(timeout);
-            listen();
-        } catch (IOException ex) {
-            logger.log(Level.SEVERE, null, ex);
+        while (listening && backlog >= numberOfClients && !closed) {
+            Socket connectionSocket;
+            try {
+                connectionSocket = serverSocket.accept();
+                ConnectionToClient client = new ConnectionToClient(this, connectionSocket.getInetAddress(), connectionSocket);
+                clientThreads.add(client);
+                numberOfClients++;
+                clientConnected(client);
+                client.start();
+            } catch (IOException ex) {
+                listeningException(ex);
+            }
         }
-
     }
 
     protected abstract void handleMessageFromClient(Object msg, ConnectionToClient client);
