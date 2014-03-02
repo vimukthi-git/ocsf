@@ -22,7 +22,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>com.vimukthi.assignments.ocsf.simplechat.EchoServer</mainClass>
+                            <mainClass>com.vimukthi.assignments.ocsf.simplechat.ServerConsole</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>

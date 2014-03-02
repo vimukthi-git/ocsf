@@ -27,6 +27,13 @@ public abstract class AbstractServer implements Runnable {
 
     public AbstractServer(int port) {
         this.port = port;
+        try {
+            serverSocket = new ServerSocket(port);
+            clientThreads = new ArrayList<Thread>();
+        } catch (IOException ex) {
+            logger.log(Level.FINE, "Could not create socket", ex);
+        }
+
     }
 
     protected void clientConnected(ConnectionToClient client) {
@@ -58,10 +65,12 @@ public abstract class AbstractServer implements Runnable {
     }
 
     public void sendToAllClients(Object msg) {
-        for (Thread thread : clientThreads) {
-            ConnectionToClient con = (ConnectionToClient) thread;
-            if (msg != null) {
-                con.sendToClient(msg);
+        if (clientThreads != null && !clientThreads.isEmpty()) {
+            for (Thread thread : clientThreads) {
+                ConnectionToClient con = (ConnectionToClient) thread;
+                if (msg != null) {
+                    con.sendToClient(msg);
+                }
             }
         }
     }
@@ -106,30 +115,24 @@ public abstract class AbstractServer implements Runnable {
         this.timeout = timeout;
     }
 
-    void removeClient(ConnectionToClient client) {
+    public synchronized void removeClient(ConnectionToClient client) {
         numberOfClients--;
         clientThreads.remove(client);
     }
 
     public final void listen() {
-        logger.log(Level.INFO, "Server listening");
+        logger.log(Level.FINE, "Server listening");
         listening = true;
-        try {
-            serverSocket = new ServerSocket(port);            
-            clientThreads = new ArrayList<Thread>();
-            server = new Thread(this);
-            server.start();
-            logger.log(Level.INFO, "Server started");
-            serverStarted();
-        } catch (IOException ex) {
-            logger.log(Level.SEVERE, null, ex);
-        }
-        
+        server = new Thread(this);
+        server.start();
+        logger.log(Level.FINE, "Server started");
+        serverStarted();
     }
 
     public final void stopListening() {
         //Causes the server to stop accepting new connections.
         listening = false;
+        server = null;
         serverStopped();
     }
 
@@ -141,11 +144,11 @@ public abstract class AbstractServer implements Runnable {
                 ConnectionToClient con = (ConnectionToClient) thread;
                 con.close();
             }
-            serverClosed();
-            logger.log(Level.INFO, "Server closed down");
             closed = true;
+            serverClosed();
+            logger.log(Level.FINE, "Server closed down");            
         } catch (IOException ex) {
-            Logger.getLogger(AbstractServer.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(AbstractServer.class.getName()).log(Level.FINE, null, ex);
         }
 
     }

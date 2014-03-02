@@ -34,27 +34,24 @@ public class ConnectionToClient extends Thread {
     }
 
     public void sendToClient(Object msg) {
-        logger.log(Level.INFO, "Sent: {0} to Client connection {1}", new Object[]{msg.toString(), clientNo});
+        logger.log(Level.FINE, "Sent: {0} to Client connection {1}", new Object[]{msg.toString(), clientNo});
         try {
             outToClient.writeBytes(msg.toString());
         } catch (IOException ex) {
             getServer().clientException(this, ex);
-            logger.log(Level.SEVERE, "Sending exception", ex);
+            logger.log(Level.FINE, "Sending exception", ex);
         }
     }
 
     public void close() {
         closed = true;
         try {
-            outToClient.close();
-            inFromClient.close();
             connectionSocket.close();
-            logger.log(Level.INFO, "Client connection {0} closed", clientNo);
+            logger.log(Level.FINE, "Client connection {0} closed", clientNo);
         } catch (IOException ex) {
             getServer().clientException(this, ex);
-            logger.log(Level.SEVERE, "closing exception", ex);
+            logger.log(Level.FINE, "closing exception", ex);
         }
-        getServer().removeClient(this);
         getServer().clientDisconnected(this);
     }
 
@@ -73,7 +70,7 @@ public class ConnectionToClient extends Thread {
     @Override
     public void run() {
         this.clientNo = Thread.currentThread().getId();
-        logger.log(Level.INFO, "Client connection {0} started", clientNo);
+        logger.log(Level.FINE, "Client connection {0} started", clientNo);
         String clientSentence;
         try {
             outToClient = new DataOutputStream(connectionSocket.getOutputStream());
@@ -81,16 +78,20 @@ public class ConnectionToClient extends Thread {
             while (!closed) {
                 clientSentence = inFromClient.readLine();
                 if (clientSentence == null) {
-                    close();
+                    closed = true;
+                    connectionSocket.close();
+                    getServer().removeClient(this);
+                    getServer().clientDisconnected(this);
+                    logger.log(Level.FINE, "Client connection {0} closed", clientNo);
                 } else {
-                    logger.log(Level.INFO, "Client connection {0} Received: {1}", new Object[]{clientNo, clientSentence});
-                    getServer().handleMessageFromClient(clientSentence, this);                    
+                    logger.log(Level.FINE, "Client connection {0} Received: {1}", new Object[]{clientNo, clientSentence});
+                    getServer().handleMessageFromClient(clientSentence, this);
                 }
             }
         } catch (IOException ex) {
             close();
             getServer().clientException(this, ex);
-            logger.log(Level.SEVERE, "connection exception", ex);
+            logger.log(Level.FINE, "connection exception", ex);
         }
 
     }

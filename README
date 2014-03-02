@@ -1,0 +1,28 @@
+The assignment is done as a maven project containing three modules,
+
+ - ocsf - this module contains the ocsf framework classes.
+ - ocsf-simplechatserver - this module contains the chat server code.
+ - ocsf-simplechatclient - this module contains the chat client code.
+
+Execute
+=======
+The two executable jars for the server and the client are already built and stored in bin directory. You can run them with,
+java -jar bin/<executable-jar-name>
+
+
+Build from source
+=================
+
+To build the projects from source code first run,
+
+mvn install
+
+From the base directory.
+
+Then run,
+
+compile assembly:single
+
+from within each of ocsf-simplechatserver and ocsf-simplechatclient directories. This will build the executable jars within target directories of each maven project. 
+
+

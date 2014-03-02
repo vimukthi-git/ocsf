@@ -21,23 +21,28 @@ public class ClientConsole implements ChatIF {
 
     public void run(String[] args) throws InterruptedException, IOException {
         try {
-            client = new ChatClient(args[0], Integer.valueOf(args[1]), this);
-        } catch (ArrayIndexOutOfBoundsException e) {
-            System.out.println("Connecting to default host and port");
-            client = new ChatClient(DEFAULT_HOST, DEFAULT_PORT, this);
-        }
-        client.openConnection();
-        Thread.sleep(100);
-        display("");
-
-        while (run) {
-            String input = System.console().readLine();
-            if (isCommand(input)) {
-                processCommand(input);
-            } else {
-                client.handleMessageFromClientUI(input + "\n");
+            String loginid = args[0];
+            try {
+                client = new ChatClient(loginid, args[1], Integer.valueOf(args[2]), this);
+            } catch (ArrayIndexOutOfBoundsException e) {
+                System.out.println("Connecting to default host and port");
+                client = new ChatClient(loginid, DEFAULT_HOST, DEFAULT_PORT, this);
             }
+            client.openConnection();
+            Thread.sleep(100);
             display("");
+
+            while (run) {
+                String input = System.console().readLine();
+                if (isCommand(input)) {
+                    processCommand(input);
+                } else {
+                    client.handleMessageFromClientUI(input + "\n");
+                }
+                display("");
+            }
+        } catch (ArrayIndexOutOfBoundsException e) {
+            System.out.println("Please provide login id");
         }
     }
 
@@ -75,18 +80,18 @@ public class ClientConsole implements ChatIF {
             }
 
         } else if (command.equals(Commands.SET_HOST)) {
-            if (! client.isConnected()) {
+            if (!client.isConnected()) {
                 client.setHost(command_arr[1]);
             } else {
                 display("Please disconnect before setting host");
             }
         } else if (command.equals(Commands.SET_PORT)) {
-            if (! client.isConnected()) {
+            if (!client.isConnected()) {
                 try {
                     client.setPort(Integer.valueOf(command_arr[1]));
                 } catch (Exception e) {
                     display("error check input again");
-                }                
+                }
             } else {
                 display("Please disconnect before setting port");
             }
