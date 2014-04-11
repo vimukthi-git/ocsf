@@ -22,11 +22,12 @@ public class ClientConsole implements ChatIF {
     public void run(String[] args) throws InterruptedException, IOException {
         try {
             String loginid = args[0];
+            String passwd = args[1];
             try {
-                client = new ChatClient(loginid, args[1], Integer.valueOf(args[2]), this);
+                client = new ChatClient(loginid, passwd, args[2], Integer.valueOf(args[3]), this);
             } catch (ArrayIndexOutOfBoundsException e) {
                 System.out.println("Connecting to default host and port");
-                client = new ChatClient(loginid, DEFAULT_HOST, DEFAULT_PORT, this);
+                client = new ChatClient(loginid, passwd, DEFAULT_HOST, DEFAULT_PORT, this);
             }
             client.openConnection();
             Thread.sleep(100);

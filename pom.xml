@@ -15,5 +15,6 @@
     <module>ocsf</module>
     <module>ocsf-simplechatserver</module>
     <module>ocsf-simplechatclient</module>
+    <module>standalone-war</module>
   </modules>
 </project>

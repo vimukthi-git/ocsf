@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.vimukthi.assignments.ocsf.simplechatclient;
 
 /**
@@ -32,5 +28,8 @@ cli ent is not already connected; displays an error m essage otherwise.
     public static final String LOGIN = "#login";
     public static final String GET_HOST = "#gethost";
     public static final String GET_PORT = "#getport";
+    
+    public static final String LIST_USERS = "#listusers";
+    public static final String TO_USER = "#touser";
     
 }

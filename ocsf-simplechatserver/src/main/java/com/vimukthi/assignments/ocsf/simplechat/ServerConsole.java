@@ -8,15 +8,28 @@ public class ServerConsole implements ChatIF {
 
     private EchoServer server;
     private static final String PROMPT = "chatserver>";
+    private static final int DEFAULT_PORT = 8000;
     private boolean run = true;
 
     public static void main(String[] args) throws InterruptedException {
         ServerConsole console = new ServerConsole();
-        console.run();
+        console.run(args);
     }
 
-    public void run() throws InterruptedException {
-        server = new EchoServer(8000, this);
+    public void run(String[] args) throws InterruptedException {
+        int port;
+        Boolean master;
+        try{
+            port = Integer.valueOf(args[0]);
+        } catch (ArrayIndexOutOfBoundsException e) {
+            port = DEFAULT_PORT;
+        }   
+        try{
+            master = Boolean.valueOf(args[1]);
+        } catch (ArrayIndexOutOfBoundsException e) {
+            master = false;
+        }   
+        server = new EchoServer(port, this, master);
         server.listen();
         Thread.sleep(100);
         display("");

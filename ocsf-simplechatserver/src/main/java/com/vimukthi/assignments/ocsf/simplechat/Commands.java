@@ -30,4 +30,13 @@ the server is stopped.
     public static final String START = "#start";
     public static final String GET_PORT = "#getport";
     
+    public static final String CLIENT_LOGIN = "#login";
+    public static final String LIST_USERS = "#listusers";
+    public static final String TO_USER = "#touser";
+    public static final String CHANNEL = "#channel";
+    public static final String LIST_CHANNELS = "#listchannels";
+    public static final String JOIN_CHANNEL = "#join";
+    public static final String EXIT_CHANNEL = "#exitchannel";
+    
+    
 }

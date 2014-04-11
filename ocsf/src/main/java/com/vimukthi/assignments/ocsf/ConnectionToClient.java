@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.InetAddress;
 import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
@@ -17,7 +16,7 @@ import java.util.logging.Logger;
  */
 public class ConnectionToClient extends Thread {
 
-    private InetAddress inetAddress;
+    //private InetAddress inetAddress;
     private Map<String, Object> info = new HashMap<String, Object>();
     private Socket connectionSocket;
     private DataOutputStream outToClient;
@@ -27,9 +26,10 @@ public class ConnectionToClient extends Thread {
     private static final Logger logger = Logger.getLogger(ConnectionToClient.class.getName());
     private boolean closed = false;
 
-    public ConnectionToClient(AbstractServer server, InetAddress inetAddress, Socket connectionSocket) {
+    public ConnectionToClient(ThreadGroup threadGroup, AbstractServer server, Socket connectionSocket) {
+        super(threadGroup, "");
         this.server = server;
-        this.inetAddress = inetAddress;
+        //this.inetAddress = inetAddress;
         this.connectionSocket = connectionSocket;
     }
 
@@ -55,9 +55,9 @@ public class ConnectionToClient extends Thread {
         getServer().clientDisconnected(this);
     }
 
-    public InetAddress getInetAddress() {
-        return inetAddress;
-    }
+//    public InetAddress getInetAddress() {
+//        return inetAddress;
+//    }
 
     public void setInfo(String infoType, Object info) {
         this.info.put(infoType, info);
@@ -85,7 +85,10 @@ public class ConnectionToClient extends Thread {
                     logger.log(Level.FINE, "Client connection {0} closed", clientNo);
                 } else {
                     logger.log(Level.FINE, "Client connection {0} Received: {1}", new Object[]{clientNo, clientSentence});
-                    getServer().handleMessageFromClient(clientSentence, this);
+                    if(handleMessageFromClient(clientSentence)){
+                        getServer().handleMessageFromClient(clientSentence, this);
+                    }
+                    
                 }
             }
         } catch (IOException ex) {
@@ -94,6 +97,10 @@ public class ConnectionToClient extends Thread {
             logger.log(Level.FINE, "connection exception", ex);
         }
 
+    }
+    
+    protected boolean handleMessageFromClient(Object msg){
+        return true;
     }
 
     private synchronized AbstractServer getServer() {

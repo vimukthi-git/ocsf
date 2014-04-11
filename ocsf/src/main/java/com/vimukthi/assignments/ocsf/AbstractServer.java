@@ -24,9 +24,12 @@ public abstract class AbstractServer implements Runnable {
     private ServerSocket serverSocket;
     private static final Logger logger = Logger.getLogger(AbstractServer.class.getName());
     private Thread server;
+    private ThreadGroup serverThreadGroup;
+    private AbstractConnectionFactory connectionFactory;
 
     public AbstractServer(int port) {
         this.port = port;
+        this.serverThreadGroup = new ThreadGroup("server_threads");
         try {
             serverSocket = new ServerSocket(port);
             clientThreads = new ArrayList<Thread>();
@@ -76,8 +79,14 @@ public abstract class AbstractServer implements Runnable {
     }
 
     public final Thread[] getClientConnections() {
+        Thread[] clients = new Thread[clientThreads.size()];
+        int i = 0;
+        for (Thread thread : clientThreads) {
+            clients[i] = thread;
+            i++;
+        }
         //Returns an array containing the existing client connections.
-        return (Thread[]) clientThreads.toArray();
+        return clients;
     }
 
     public final int getNumberOfClients() {
@@ -123,7 +132,7 @@ public abstract class AbstractServer implements Runnable {
     public final void listen() {
         logger.log(Level.FINE, "Server listening");
         listening = true;
-        server = new Thread(this);
+        server = new Thread(serverThreadGroup, this);
         server.start();
         logger.log(Level.FINE, "Server started");
         serverStarted();
@@ -146,7 +155,7 @@ public abstract class AbstractServer implements Runnable {
             }
             closed = true;
             serverClosed();
-            logger.log(Level.FINE, "Server closed down");            
+            logger.log(Level.FINE, "Server closed down");
         } catch (IOException ex) {
             Logger.getLogger(AbstractServer.class.getName()).log(Level.FINE, null, ex);
         }
@@ -159,7 +168,12 @@ public abstract class AbstractServer implements Runnable {
             Socket connectionSocket;
             try {
                 connectionSocket = serverSocket.accept();
-                ConnectionToClient client = new ConnectionToClient(this, connectionSocket.getInetAddress(), connectionSocket);
+                ConnectionToClient client;
+                if(connectionFactory != null){
+                    client = connectionFactory.createConnection(serverThreadGroup, this, connectionSocket);
+                } else {
+                    client = new ConnectionToClient(serverThreadGroup, this, connectionSocket);
+                }
                 clientThreads.add(client);
                 numberOfClients++;
                 clientConnected(client);
@@ -169,6 +183,10 @@ public abstract class AbstractServer implements Runnable {
             }
         }
     }
+
+    public void setConnectionFactory(AbstractConnectionFactory connectionFactory) {
+        this.connectionFactory = connectionFactory;
+    }    
 
     protected abstract void handleMessageFromClient(Object msg, ConnectionToClient client);
 }

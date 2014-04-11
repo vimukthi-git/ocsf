@@ -4,29 +4,31 @@
  */
 package com.vimukthi.assignments.ocsf.simplechatclient;
 
-import com.vimukthi.assignments.ocsf.AbstractClient;
+import com.vimukthi.assignments.ocsf.ObservableClient;
 import java.util.logging.Logger;
 
 /**
  *
  * @author vimukthi
  */
-public class ChatClient extends AbstractClient {
+public class ChatClient extends ObservableClient {
 
     private ChatIF ui;
     private String loginId;
+    private String passwd;
     private static final Logger logger = Logger.getLogger(ChatClient.class.getName());
 
-    public ChatClient(String loginId, String host, int port, ChatIF ui) {
+    public ChatClient(String loginId, String passwd, String host, int port, ChatIF ui) {
         super(host, port);
         this.loginId = loginId;
+        this.passwd = passwd;
         this.ui = ui;
     }
 
     @Override
     protected void connectionEstablished() {
         super.connectionEstablished();
-        sendToServer("#login " + loginId + "\n");
+        sendToServer("#login " + loginId + " " + passwd + "\n");
     }
 
     @Override
