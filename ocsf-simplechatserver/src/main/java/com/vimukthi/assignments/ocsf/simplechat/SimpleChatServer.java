@@ -1,10 +1,9 @@
 package com.vimukthi.assignments.ocsf.simplechat;
 
+import com.vimukthi.assignments.ocsf.simplechat.channels.ChannelHandler;
 import com.vimukthi.assignments.ocsf.ConnectionToClient;
 import com.vimukthi.assignments.ocsf.ObservableServer;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -13,22 +12,23 @@ import java.util.regex.Pattern;
  *
  * @author vimukthi
  */
-public class EchoServer extends ObservableServer {
+public class SimpleChatServer extends ObservableServer {
 
     private final static String CLUSTER_CHANNEL = "cluster";
     private Map<String, String> loginsPasswds = new HashMap<String, String>();
     private ChatIF ui;
     private Pattern toUserPattern = Pattern.compile("(#\\w+)\\s(\\S+)\\s(.*)");
-    private Map<String, List<ConnectionToClient>> channels = new HashMap<String, List<ConnectionToClient>>();
+    private ChannelHandler channelHandler;
     private Boolean master = false;
 
-    public EchoServer(int port, ChatIF ui, Boolean master) {
+    public SimpleChatServer(int port, ChatIF ui, Boolean master, ChannelHandler channelHandler) {
         super(port);
         this.ui = ui;
         this.master = master;
+        this.channelHandler = channelHandler;
         // start cluster channel
         if (master) {
-            channels.put(CLUSTER_CHANNEL, new ArrayList<ConnectionToClient>());
+            channelHandler.addChannel(CLUSTER_CHANNEL);
         }
     }
 
@@ -82,43 +82,20 @@ public class EchoServer extends ObservableServer {
                     break;
                 }
             }
-        } else if (isChannelCommand(msg.toString())) {
-            String channelName = msg.toString().split(" ")[1];
-            if (channels.containsKey(channelName)) {
-                client.sendToClient("Channel already exists\n");
-            } else {
-                channels.put(channelName, new ArrayList<ConnectionToClient>());
-                client.sendToClient("Channel created\n");
-            }
-        } else if (isChannelListCommand(msg.toString())) {
-            String channelStr = "";
-            for (String channel : channels.keySet()) {
-                channelStr += channel + "\n";
-            }
-            client.sendToClient(channelStr + "\n");
-        } else if (isChannelJoinCommand(msg.toString())) {
-            String channelName = msg.toString().split(" ")[1];
-            if (channels.containsKey(channelName) && client.getInfo("channel") == null) {
-                channels.get(channelName).add(client);
-                client.setInfo("channel", channelName);
-                client.sendToClient("You have been subscribed to " + channelName + "\n");
-            } else {
-                client.sendToClient("Ivalid channel name\n");
-            }
-        } else if (isChannelExitCommand(msg.toString())) {
-            if (client.getInfo("channel") != null) {
-                channels.get(client.getInfo("channel").toString()).remove(client);
-                client.setInfo("channel", null);
-            }
-            client.sendToClient("You have been unsubscribed from the channel\n");
+        } else if (channelHandler.isChannelCommand(msg.toString())) {
+            channelHandler.handleChannelCreation(msg, client);
+        } else if (channelHandler.isChannelListCommand(msg.toString())) {
+            channelHandler.handleChannelListing(client);
+        } else if (channelHandler.isChannelJoinCommand(msg.toString())) {
+            channelHandler.handleChannelJoining(msg, client);
+        } else if (channelHandler.isChannelExitCommand(msg.toString())) {
+            channelHandler.handleChannelExit(client);
         } else {
             String message = client.getInfo("loginid") + ">" + msg.toString();
             ui.display(message);
             // check if this is a channel message
             if (client.getInfo("channel") != null) {
-                for (ConnectionToClient connection : channels.get(client.getInfo("channel").toString())) {
-                    connection.sendToClient(message + "\n");
-                }
+                channelHandler.sendChannelMessage(client, message);
             } else {
                 for (Thread connection : getClientConnections()) {
                     ConnectionToClient c = (ConnectionToClient)connection;
@@ -182,43 +159,7 @@ public class EchoServer extends ObservableServer {
         return false;
     }
 
-    private boolean isChannelCommand(String input) {
-        try {
-            if (input != null && !input.equals("\n") && !input.equals("")
-                    && input.substring(0, Commands.CHANNEL.length()).equals(Commands.CHANNEL)) {
-                return true;
-            }
-        } catch (StringIndexOutOfBoundsException e) {
-            return false;
-        }
-        return false;
-    }
-
-    private boolean isChannelListCommand(String input) {
-        if (input != null && input.equals(Commands.LIST_CHANNELS)) {
-            return true;
-        }
-        return false;
-    }
-
-    private boolean isChannelJoinCommand(String input) {
-        try {
-            if (input != null && !input.equals("\n") && !input.equals("")
-                    && input.substring(0, Commands.JOIN_CHANNEL.length()).equals(Commands.JOIN_CHANNEL)) {
-                return true;
-            }
-        } catch (StringIndexOutOfBoundsException e) {
-            return false;
-        }
-        return false;
-    }
-
-    private boolean isChannelExitCommand(String input) {
-        if (input != null && input.equals(Commands.EXIT_CHANNEL)) {
-            return true;
-        }
-        return false;
-    }
+    
 
     /**
      * Extract message parts from a #touser command
@@ -251,6 +192,14 @@ public class EchoServer extends ObservableServer {
         if (msg != null && !msg.equals("\n")) {
             this.sendToAllClients("SERVER MESSAGE>" + msg.toString() + "\n");
         }
+    } 
+
+    public ChannelHandler getChannelHandler() {
+        return channelHandler;
     }
+
+    public void setChannelHandler(ChannelHandler channelHandler) {
+        this.channelHandler = channelHandler;
+    }   
     
 }

@@ -1,12 +1,14 @@
 package com.vimukthi.assignments.ocsf.simplechat;
 
+import com.vimukthi.assignments.ocsf.simplechat.channels.ChannelManager;
+
 /**
  *
  * @author vimukthi
  */
 public class ServerConsole implements ChatIF {
 
-    private EchoServer server;
+    private SimpleChatServer server;
     private static final String PROMPT = "chatserver>";
     private static final int DEFAULT_PORT = 8000;
     private boolean run = true;
@@ -29,7 +31,7 @@ public class ServerConsole implements ChatIF {
         } catch (ArrayIndexOutOfBoundsException e) {
             master = false;
         }   
-        server = new EchoServer(port, this, master);
+        server = new SimpleChatServer(port, this, master, new ChannelManager());
         server.listen();
         Thread.sleep(100);
         display("");
