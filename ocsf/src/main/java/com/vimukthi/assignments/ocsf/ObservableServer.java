@@ -1,6 +1,5 @@
 package com.vimukthi.assignments.ocsf;
 
-import java.io.IOException;
 import java.util.Observable;
 
 /**

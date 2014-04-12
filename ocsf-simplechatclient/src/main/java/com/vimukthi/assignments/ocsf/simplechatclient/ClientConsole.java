@@ -107,7 +107,7 @@ public class ClientConsole implements ChatIF {
         } else if (command.equals(Commands.GET_PORT)) {
             System.out.println(client.getPort());
         } else {
-            System.out.println("Unknown command");
+            client.handleMessageFromClientUI(command_str + "\n");
         }
     }
 }

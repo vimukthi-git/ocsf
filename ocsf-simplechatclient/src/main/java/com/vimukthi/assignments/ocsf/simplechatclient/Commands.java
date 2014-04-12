@@ -29,7 +29,4 @@ cli ent is not already connected; displays an error m essage otherwise.
     public static final String GET_HOST = "#gethost";
     public static final String GET_PORT = "#getport";
     
-    public static final String LIST_USERS = "#listusers";
-    public static final String TO_USER = "#touser";
-    
 }
